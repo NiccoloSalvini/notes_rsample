@@ -375,9 +375,9 @@ summary {
 <h2>intro to rolling rolling origins technique</h2>
 <p>When the data are not independent cross-validation becomes more difficult as leaving out an observation does not remove all the associated information due to the correlations with other observations. For time series forecasting, a cross-validation statistic is obtained as follows:</p>
 <ol style="list-style-type: decimal">
-<li>Fit the model to the data <span class="math display">\[y_1,...,y_t\]</span> and let <span class="math display">\[\hat{y}_{t+1}\]</span> denote the forcast of the next observation.Then compute the error <span class="math display">\[\tilde{e}_{t+1} = y_{t+1} -\hat{y}_{t+1}\]</span> for the forecast observation.</li>
-<li>Repeat step 1 for <span class="math display">\[t = m,...,n-1\]</span> where m is the minimum number of observations needed for fitting the model</li>
-<li>Compute the MSE from <span class="math display">\[\tilde{e}_{m+1},...,\tilde{e}_n\]</span></li>
+<li>Fit the model to the data <img src="data:image/svg+xml;base64,eyJzdGF0dXMiOiJlcnJvciIsImVycm9yIjoiRmFpbGVkIHRvIHBhcnNlIG10ZXgifQ==" alt="y_1,...,y_t" /> and let <img src="data:image/svg+xml;base64,eyJzdGF0dXMiOiJlcnJvciIsImVycm9yIjoiRmFpbGVkIHRvIHBhcnNlIG10ZXgifQ==" alt="\hat{y}_{t+1}" /> denote the forcast of the next observation.Then compute the error <img src="data:image/svg+xml;base64,eyJzdGF0dXMiOiJlcnJvciIsImVycm9yIjoiRmFpbGVkIHRvIHBhcnNlIG10ZXgifQ==" alt="\tilde{e}_{t+1} = y_{t+1} -\hat{y}_{t+1}" /> for the forecast observation.</li>
+<li>Repeat step 1 for <img src="data:image/svg+xml;base64,eyJzdGF0dXMiOiJlcnJvciIsImVycm9yIjoiRmFpbGVkIHRvIHBhcnNlIG10ZXgifQ==" alt="t = m,...,n-1" /> where m is the minimum number of observations needed for fitting the model</li>
+<li>Compute the MSE from <img src="data:image/svg+xml;base64,eyJzdGF0dXMiOiJlcnJvciIsImVycm9yIjoiRmFpbGVkIHRvIHBhcnNlIG10ZXgifQ==" alt="\tilde{e}_{m+1},...,\tilde{e}_n" /></li>
 </ol>
 <p>The data are sales of alcoholic beverages originally from the Federal Reserve Bank of St. Louis website.</p>
 <pre class="r"><code># data = drinks

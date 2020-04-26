@@ -13,13 +13,19 @@ associated information due to the correlations with other observations.
 For time series forecasting, a cross-validation statistic is obtained as
 follows:
 
-1.  Fit the model to the data \[y_1,...,y_t\] and let \[\hat{y}_{t+1}\]
+1.  Fit the model to the data
+    ![\[y_1,...,y_t\]](https://render.githubusercontent.com/render/math?math=%24%24y_1%2C...%2Cy_t%24%24%20)
+    and let
+    ![\[\hat{y}_{t+1}\]](https://render.githubusercontent.com/render/math?math=%24%24%5Chat%7By%7D_%7Bt%2B1%7D%24%24)
     denote the forcast of the next observation.Then compute the error
-    \[\tilde{e}_{t+1} = y_{t+1} -\hat{y}_{t+1}\] for the forecast
-    observation.
-2.  Repeat step 1 for \[t = m,...,n-1\] where m is the minimum number of
-    observations needed for fitting the model
-3.  Compute the MSE from \[\tilde{e}_{m+1},...,\tilde{e}_n\]
+    ![\[\tilde{e}_{t+1} = y_{t+1} -\hat{y}_{t+1}\]](https://render.githubusercontent.com/render/math?math=%24%24%5Ctilde%7Be%7D_%7Bt%2B1%7D%20%3D%20y_%7Bt%2B1%7D%20-%5Chat%7By%7D_%7Bt%2B1%7D%24%24)
+    for the forecast observation.
+2.  Repeat step 1 for
+    ![\[t = m,...,n-1\]](https://render.githubusercontent.com/render/math?math=%24%24t%20%3D%20m%2C...%2Cn-1%24%24)
+    where m is the minimum number of observations needed for fitting the
+    model
+3.  Compute the MSE from
+    ![\[\tilde{e}_{m+1},...,\tilde{e}_n\]](https://render.githubusercontent.com/render/math?math=%24%24%5Ctilde%7Be%7D_%7Bm%2B1%7D%2C...%2C%5Ctilde%7Be%7D_n%24%24)
 
 The data are sales of alcoholic beverages originally from the Federal
 Reserve Bank of St. Louis website.
