@@ -1,0 +1,153 @@
+---
+title: "rsample tutorial n°1"
+author: "Niccolò Salvini"
+date: "25/4/2020"
+output: rmarkdown::github_document
+---
+
+```{r opt and lib, include = FALSE, message=FALSE}
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+
+library(rsample)
+library(tidyverse)
+library(tidymodels) #broom and recipes
+library(magrittr)
+library(parsnip)
+library(purrr)
+```
+
+
+# New Application
+
+
+**attrition** data is used in this. It comes from the R base. 
+
+
+```{r attrition intro}
+# number of columns
+names(attrition) %>% 
+  length()
+
+attrition %>%  
+  select(Attrition) %>% 
+  head()
+
+```
+
+We have a huge number of columns, our target variable is once again $Attrition. The idea is at first building a logistic regression, say, in the " __common framework__ "  so with the `glm()` and the family = 'binomial' and then try to build without a the same model with the `parnsip`. So for now let's fit the Logistics some random predictors say: JobSatisfaction |  Gender |   MonthlyIncome
+
+```{r first GLM, warning=FALSE}
+
+glm(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = attrition, family = binomial)
+mod_form = as.formula(Attrition ~ JobSatisfaction + Gender + MonthlyIncome)
+```
+
+
+## build the sampling technique
+
+To evaluate this model, we will use 10 repeats of 10-fold cross-validation and use the 100 holdout samples to evaluate the overall accuracy of the model.
+
+First, let’s make the splits of the data:
+
+```{r 10-foldCV}
+
+set.seed(123)
+rs_obj = vfold_cv(attrition, v = 10, repeats = 10)
+
+## visualize one of them
+
+rs_obj %>%  
+  pull(splits) %>% 
+  pluck(1)
+
+```
+
+those numbers are:
+
+This indicates that there were **1323** data points in the **analysis** set, **147** instances were in the **assessment** set, and that the original data contained **1470** data points.
+
+>quello che succede in italiano: dividi il dataset in 10 parti randomiche, eserciti il modello su 9/10 e lo valuti sul restante 1/10. Questo lo fai 10 volte all'interno della stessa partizione. 
+Successivamente ridivi il dataset in altre 10 parti diverse da quelle allo step_1 e riprovi il modello su 9/10 e lo valuti sul restante 1/10. E così via. 
+
+this has to be applied to the logistic model and the steps are:
+
+
+1. obtain the analysis data set (i.e. the 90% used for modeling)
+1. fit a logistic regression model (GLM)
+1. predict the assessment data (the other 10% not used for the
+model) using the `broom` package
+1. determine if each sample was predicted correctly.
+
+
+here the function: 
+
+```{r apply_function}
+
+## splits will be the `rsplit` object with the 90/10 partition
+holdout_results = function(splits, ...) {
+  # Fit the model to the 90%
+  mod = glm(..., data = analysis(splits), family = binomial)
+  # Save the 10%
+  holdout = assessment(splits)
+  
+  # `augment` will save the predictions with the holdout data set
+  res = broom::augment(mod, newdata = holdout)
+  # Class predictions on the assessment set from class probs
+  lvls = levels(holdout$Attrition)
+  predictions = factor(ifelse(res$.fitted > 0, lvls[2], lvls[1]),
+                        levels = lvls)
+  # Calculate whether the prediction was correct
+  res$correct = predictions == holdout$Attrition
+  # Return the assessment data set with the additional columns
+  res
+}
+
+```
+
+take a single split and apply a the `holdout_results()`
+
+```{r esempietto}
+
+example = holdout_results(rs_obj$splits[[1]],  mod_form)
+dim(example)
+
+dim(assessment(rs_obj$splits[[1]]))
+
+example[1:10, setdiff(names(example), names(attrition))]
+
+```
+
+In this part I am creating a variable `example` and I am applying the user defined first item is the single split, second item is the mod_form which is the formula (target and predictors).
+What you are really doing is applying the model to the first splitting to test it. 
+For this model, the .fitted value is the linear predictor in log-odds units.
+To compute this data set for each of the 100 resamples, we’ll use the map function from the `purrr` package:
+
+
+```{r map}
+
+rs_obj$results = map(rs_obj$splits,
+                      holdout_results,
+                      mod_form)
+rs_obj
+
+
+```
+
+
+
+
+Now we can compute the accuracy values for all of the assessment data sets:
+
+
+```{r map_dbl}
+
+rs_obj$accuracy <- map_dbl(rs_obj$results, function(x) mean(x$correct))
+summary(rs_obj$accuracy)
+
+```
