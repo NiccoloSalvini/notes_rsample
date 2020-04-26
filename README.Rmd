@@ -119,7 +119,7 @@ first_resample
 
 ```
 
-This indicates that there were **32** data points in the _analysis_ set, **14** instances were in the assessment set, and that the original data contained **32** data points. These results can also be determined using the dim function on an rsplit object.
+This indicates that there were **32** data points in the **analysis** set, **14** instances were in the **assessment** set, and that the original data contained **32** data points. These results can also be determined using the dim function on an rsplit object.
 
 ## How to really call data 
 
