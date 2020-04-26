@@ -186,3 +186,179 @@ summary(rs_obj$accuracy)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #>  0.7687  0.8231  0.8401  0.8388  0.8571  0.8980
 ```
+
+## Now try with the `parnsip` & `recipe`
+
+at first you should define the `recipe`, here the recipe is very simple
+since we don’t want to do any particular transformations. We are more
+interested in the demonstrating the tidier syntax and the
+straightforward approach. still the formula is the same, eventhough a
+RFE apporoach would be preferable.
+
+> With these specific issues in mind for these data, a recursive feature
+> elimination (RFE) routine (Chapters 10 and 11) was used to determine
+> if fewer predictors would be advantageous. RFE is a simple backwards
+> selection procedure where the largest model is used initially and,
+> from this model, each predictor is ranked in importance. For logistic
+> regression, there are several methods for determining importance, and
+> we will use the simple absolute value of the regression coefficient
+> for each model term (after the predictors have been centered and
+> scaled). The RFE procedure begins to remove the least important
+> predictors, refits the model, and evaluates performance. At each model
+> fit, the predictors are preprocessed by an initial Yeo-Johnson
+> transformation as well as centering and scaling. As will be discussed
+> in later chapters, correlation between the predictors can cause
+> instability in the logistic regression coefficients. While there are
+> more sophisticated approaches, an additional variable filter will be
+> used on the data to remove the minimum set of predictors such that no
+> pairwise correlations between predictors are greater than 0.75. The
+> data preprocessing will be conducted with and without this step to
+> show the potential effects on the feature selection procedure.
+
+this was taken from the Max Kuhn Kjell Johnson, Feature Engineering and
+Selection
+
+Check the unbalancedness:
+
+``` r
+
+attrition %>%
+  select(Attrition) %>% 
+  skimr::skim()
+```
+
+|                                                  |            |
+| :----------------------------------------------- | :--------- |
+| Name                                             | Piped data |
+| Number of rows                                   | 1470       |
+| Number of columns                                | 1          |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |            |
+| Column type frequency:                           |            |
+| factor                                           | 1          |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |            |
+| Group variables                                  | None       |
+
+Data summary
+
+**Variable type:
+factor**
+
+| skim\_variable | n\_missing | complete\_rate | ordered | n\_unique | top\_counts        |
+| :------------- | ---------: | -------------: | :------ | --------: | :----------------- |
+| Attrition      |          0 |              1 | FALSE   |         2 | No: 1233, Yes: 237 |
+
+``` r
+
+attrition = tibble(attrition)
+
+
+#  1 No: 1233, Yes: 237        
+```
+
+Data is truly unbalanced, so you need to keep proportion in data.
+
+``` r
+
+ini = initial_split(attrition, prop = 8/10, strata = Attrition)
+train_attr = analysis(ini)
+test_attr = assessment(ini)
+```
+
+## preprocess
+
+Here we have a integer variable MonthlyIncome and two factors, one binay
+(Gender) and the other 3 levels (JobSatistfaction). So I decided to
+center and scale all the numerics, (monthlyincome) and get dummies in
+the two factors vars.
+
+``` r
+#
+rec = recipe(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = train_attr) %>%
+  step_dummy(Gender, JobSatisfaction) %>% 
+  step_scale(MonthlyIncome) %>% 
+  step_center(MonthlyIncome)
+
+rec
+#> Data Recipe
+#> 
+#> Inputs:
+#> 
+#>       role #variables
+#>    outcome          1
+#>  predictor          3
+#> 
+#> Operations:
+#> 
+#> Dummy variables from Gender, JobSatisfaction
+#> Scaling for MonthlyIncome
+#> Centering for MonthlyIncome
+```
+
+now you have colled the recipe, now yoiu bake it and then fit it.
+
+``` r
+preps = prep(rec)
+succo = juice(preps)
+succo %>%
+  head(10)
+#> # A tibble: 10 x 6
+#>    MonthlyIncome Attrition Gender_Male JobSatisfaction~ JobSatisfaction~
+#>            <dbl> <fct>           <dbl>            <dbl>            <dbl>
+#>  1        -0.107 Yes                 0            0.671              0.5
+#>  2        -0.289 No                  1           -0.224             -0.5
+#>  3        -0.933 Yes                 1            0.224             -0.5
+#>  4        -0.759 No                  0            0.224             -0.5
+#>  5        -0.810 No                  0           -0.671              0.5
+#>  6        -0.805 No                  1            0.224             -0.5
+#>  7        -0.267 No                  1            0.224             -0.5
+#>  8        -0.488 No                  0            0.224             -0.5
+#>  9        -0.759 No                  1            0.224             -0.5
+#> 10        -0.812 No                  1            0.671              0.5
+#> # ... with 1 more variable: JobSatisfaction_3 <dbl>
+```
+
+``` r
+
+cuoci = bake(preps, new_data = test_attr)
+cuoci
+#> # A tibble: 293 x 6
+#>    MonthlyIncome Attrition Gender_Male JobSatisfaction~ JobSatisfaction~
+#>            <dbl> <fct>           <dbl>            <dbl>            <dbl>
+#>  1        -0.641 No                  1           -0.224             -0.5
+#>  2        -0.726 No                  1            0.671              0.5
+#>  3         0.641 No                  1            0.224             -0.5
+#>  4        -0.861 No                  1           -0.224             -0.5
+#>  5         0.737 No                  0           -0.671              0.5
+#>  6        -0.540 No                  1            0.671              0.5
+#>  7        -0.847 No                  1            0.671              0.5
+#>  8        -0.908 No                  1            0.224             -0.5
+#>  9        -0.237 No                  0           -0.671              0.5
+#> 10        -0.526 No                  0            0.671              0.5
+#> # ... with 283 more rows, and 1 more variable: JobSatisfaction_3 <dbl>
+```
+
+## Now with the parnsip set up the model
+
+``` r
+
+logistic = logistic_reg(mode = 'classification'); logistic
+#> Logistic Regression Model Specification (classification)
+logistic %>% 
+  set_engine("glm") %>% 
+  fit(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = train_attr) %>% 
+  predict(new_data = test_attr) %>% 
+  pull(.pred_class)
+#>   [1] No No No No No No No No No No No No No No No No No No No No No No No No No
+#>  [26] No No No No No No No No No No No No No No No No No No No No No No No No No
+#>  [51] No No No No No No No No No No No No No No No No No No No No No No No No No
+#>  [76] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [101] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [126] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [151] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [176] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [201] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [226] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [251] No No No No No No No No No No No No No No No No No No No No No No No No No
+#> [276] No No No No No No No No No No No No No No No No No No
+#> Levels: No Yes
+```
