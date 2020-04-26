@@ -13,13 +13,13 @@ associated information due to the correlations with other observations.
 For time series forecasting, a cross-validation statistic is obtained as
 follows:
 
-1.  Fit the model to the data \(y_1,...,y_t\) and let \(\hat{y}_{t+1}\)
+1.  Fit the model to the data \[y_1,...,y_t\] and let \[\hat{y}_{t+1}\]
     denote the forcast of the next observation.Then compute the error
-    \(\tilde{e}_{t+1} = y_{t+1} -\hat{y}_{t+1}\) for the forecast
+    \[\tilde{e}_{t+1} = y_{t+1} -\hat{y}_{t+1}\] for the forecast
     observation.
-2.  Repeat step 1 for \(t = m,...,n-1\) where m is the minimum number of
+2.  Repeat step 1 for \[t = m,...,n-1\] where m is the minimum number of
     observations needed for fitting the model
-3.  Compute the MSE from \(\tilde{e}_{m+1},...,\tilde{e}_n\)
+3.  Compute the MSE from \[\tilde{e}_{m+1},...,\tilde{e}_n\]
 
 The data are sales of alcoholic beverages originally from the Federal
 Reserve Bank of St. Louis website.
