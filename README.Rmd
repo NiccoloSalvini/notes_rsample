@@ -5,8 +5,19 @@ date: "25/4/2020"
 output: rmarkdown::github_document
 ---
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/rsample)](https://cran.r-project.org/package=rsample)
+```{r, include = FALSE}
 
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/rsample)](https://cran.r-project.org/package=rsample)
 ![](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
 
 <img src="img/logo.png" alt="drawing" width="139"/>
@@ -56,18 +67,17 @@ library(skimr)
 ```
 
 
-some quick reference to refresh [boostrapping technique](http://www.youtube.com/watch?v=XNgt7F6FqDU&t=8m48s) by the statquest. It automatically jumps to minute 8:48, don't worry. 
+some quick YT reference to refresh[boostrapping technique](http://www.youtube.com/watch?v=XNgt7F6FqDU&t=8m48s) by the statquest. It automatically jumps to minute 8:48, don't worry. 
 
 
 ## Application
 
-verybody know the mtcars dataset, if not, don't mind I will introduce you
+Everybody knows the mtcars dataset, if you don't, don't mind I will introduce you.
 
 
 ```{r mtcars}
-
+# by the skimr package
 skimr::skim(mtcars)
-
 
 
 ```
@@ -91,9 +101,9 @@ The resamples are stored in the splits column in an object that has **class** : 
 
 In this package we use the following terminology for the two partitions that comprise a resample:
 
-- The _analysis_ data are those that we selected in the resample. For a bootstrap, this is the sample with replacement. For 10-fold cross-validation, this is the 90% of the data. These data are often used to fit a model or calculate a statistic in traditional bootstrapping.(aka the *training* set even if authors do not reaaly want you to say that)
+- The **analysis** data are those that we selected in the resample. For a bootstrap, this is the sample with replacement. For 10-fold cross-validation, this is the 90% of the data. These data are often used to fit a model or calculate a statistic in traditional bootstrapping.(aka the *training* set even if authors do not reaaly want you to say that)
 
-- The _assessment_ data are usually the section of the original data not covered by the analysis set. Again, in 10-fold CV, this is the 10% held out. These data are often used to evaluate the performance of a model that was fit to the analysis data. aka the *testing* set even if authors do not reaaly want you to say that)
+- The **assessment** data are usually the section of the original data not covered by the analysis set. Again, in 10-fold CV, this is the 10% held out. These data are often used to evaluate the performance of a model that was fit to the analysis data. aka the *testing* set even if authors do not reaaly want you to say that)
 
 ed. I am using a Tidyverse approach for the selection of elements in the `first_resample`, in particular the `pull()` selection to extract the column split, then the `pluck()` to pick the first element of the list of the list. (bt_resamples$splits[[1]])
 
