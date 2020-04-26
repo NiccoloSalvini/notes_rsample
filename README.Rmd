@@ -1,0 +1,135 @@
+---
+title: "rsample"
+author: "Niccolò Salvini"
+date: "25/4/2020"
+output: rmarkdown::github_document
+---
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/rsample)](https://cran.r-project.org/package=rsample)
+
+![](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
+
+<img src="img/logo.png" alt="drawing" width="139"/>
+
+## Gentle Introduction
+
+-----
+
+`rsample` contains a set of functions that can create different types of
+resamples and corresponding classes for their analysis. The goal is to
+have a modular set of methods that can be used across different R
+packages for:
+
+  - Traditional resampling techniques for estimating the sampling
+    Distribution of a statistic and
+  - Estimating model performance using a holdout set ( _tain test splitting_ )
+  
+In addition it can be used to in combination with `recipes` and `parnsip` to develop easy and reproducible model pipelines.
+it supports train test splitting for a number of different data types: 
+  - Survival analisys 
+  - Time series Anlisys
+  
+It can also be used in:
+  - Tuning models in nested resampling
+  - Gridsearch and randomized search in `Keras`
+  - Boostrap Interval Estimation
+  
+
+The scope of `rsample` is to provide the basic building blocks for
+creating and analyzing resamples of a data set but does not include code
+for modeling or calculating statistics. The “Working with Resample Sets”
+vignette gives demonstrations of how rsample tools can be used.
+
+
+
+## Terminology Alert... ([Josh Starmer](https://www.youtube.com/user/joshstarmer) called upon)
+
+We define a resample as the result of a two-way split of a data set. For example, when bootstrapping, one part of the resample is a sample with replacement of the original data. The other part of the split contains the instances that were not contained in the bootstrap sample. Cross-validation is another type of resampling.
+
+```{r libraries, include=FALSE, message=FALSE}
+
+library(rsample)
+library(tidyverse)
+library(magrittr)
+library(skimr)
+
+```
+
+
+some quick reference to refresh [boostrapping technique](http://www.youtube.com/watch?v=XNgt7F6FqDU&t=8m48s) by the statquest. It automatically jumps to minute 8:48, don't worry. 
+
+
+## Application
+
+verybody know the mtcars dataset, if not, don't mind I will introduce you
+
+
+```{r mtcars}
+
+skimr::skim(mtcars)
+
+
+
+```
+
+
+```{r boostrapping}
+
+# using mtcars
+set.seed(123)
+bt_resamples = bootstraps(mtcars, times = 3)
+bt_resamples
+
+```
+
+
+
+## Individual Resamples are _rsplit_ Objects
+
+
+The resamples are stored in the splits column in an object that has **class** :  _rsplit_.
+
+In this package we use the following terminology for the two partitions that comprise a resample:
+
+- The _analysis_ data are those that we selected in the resample. For a bootstrap, this is the sample with replacement. For 10-fold cross-validation, this is the 90% of the data. These data are often used to fit a model or calculate a statistic in traditional bootstrapping.(aka the *training* set even if authors do not reaaly want you to say that)
+
+- The _assessment_ data are usually the section of the original data not covered by the analysis set. Again, in 10-fold CV, this is the 10% held out. These data are often used to evaluate the performance of a model that was fit to the analysis data. aka the *testing* set even if authors do not reaaly want you to say that)
+
+ed. I am using a Tidyverse approach for the selection of elements in the `first_resample`, in particular the `pull()` selection to extract the column split, then the `pluck()` to pick the first element of the list of the list. (bt_resamples$splits[[1]])
+
+
+```{r first_resample}
+
+first_resample = 
+  bt_resamples %>%
+  pull(splits) %>% # pull selection 
+  pluck(1)
+  
+first_resample
+
+```
+
+This indicates that there were **32** data points in the _analysis_ set, **14** instances were in the assessment set, and that the original data contained **32** data points. These results can also be determined using the dim function on an rsplit object.
+
+## How to really call data 
+
+```{r call data}
+
+as.data.frame(first_resample) %>% 
+  head()
+
+
+```
+
+### alternatively, way better than this
+
+
+```{r call data alt}
+
+analysis(first_resample) %>% dim()
+assessment(first_resample) %>% dim()
+
+
+```
+
+
+
