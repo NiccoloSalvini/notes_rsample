@@ -6,7 +6,6 @@ output: rmarkdown::github_document
 ---
 
 ```{r opt and lib, include = FALSE, message=FALSE}
-
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -23,7 +22,7 @@ library(purrr)
 ```
 
 
-# New Application
+# try with a dual application
 
 
 **attrition** data is used in this. It comes from the R base. 
@@ -43,7 +42,6 @@ attrition %>%
 We have a huge number of columns, our target variable is once again $Attrition. The idea is at first building a logistic regression, say, in the " __common framework__ "  so with the `glm()` and the family = 'binomial' and then try to build without a the same model with the `parnsip`. So for now let's fit the Logistics some random predictors say: JobSatisfaction |  Gender |   MonthlyIncome
 
 ```{r first GLM, warning=FALSE}
-
 glm(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = attrition, family = binomial)
 mod_form = as.formula(Attrition ~ JobSatisfaction + Gender + MonthlyIncome)
 ```
@@ -56,7 +54,6 @@ To evaluate this model, we will use 10 repeats of 10-fold cross-validation and u
 First, let’s make the splits of the data:
 
 ```{r 10-foldCV}
-
 set.seed(123)
 rs_obj = vfold_cv(attrition, v = 10, repeats = 10)
 
@@ -72,8 +69,10 @@ those numbers are:
 
 This indicates that there were **1323** data points in the **analysis** set, **147** instances were in the **assessment** set, and that the original data contained **1470** data points.
 
->quello che succede in italiano: dividi il dataset in 10 parti randomiche, eserciti il modello su 9/10 e lo valuti sul restante 1/10. Questo lo fai 10 volte all'interno della stessa partizione. 
-Successivamente ridivi il dataset in altre 10 parti diverse da quelle allo step_1 e riprovi il modello su 9/10 e lo valuti sul restante 1/10. E così via. 
+>quello che succede in italiano: dividi il dataset in 10 parti randomiche, eserciti il modello su >9/10 e lo valuti sul restante 1/10. Questo lo fai 10 volte all'interno della stessa partizione. 
+>Successivamente ridivi il dataset in altre 10 parti diverse da quelle allo step_1 e riprovi il >modello su 9/10 e lo valuti sul restante 1/10. E così via. 
+>
+> -- <cite> Me a Me stesso...</cite>
 
 this has to be applied to the logistic model and the steps are:
 
@@ -88,7 +87,6 @@ model) using the `broom` package
 here the function: 
 
 ```{r apply_function}
-
 ## splits will be the `rsplit` object with the 90/10 partition
 holdout_results = function(splits, ...) {
   # Fit the model to the 90%
@@ -113,7 +111,6 @@ holdout_results = function(splits, ...) {
 take a single split and apply a the `holdout_results()`
 
 ```{r esempietto}
-
 example = holdout_results(rs_obj$splits[[1]],  mod_form)
 dim(example)
 
@@ -130,12 +127,10 @@ To compute this data set for each of the 100 resamples, we’ll use the map func
 
 
 ```{r map}
-
 rs_obj$results = map(rs_obj$splits,
                       holdout_results,
                       mod_form)
 rs_obj
-
 
 ```
 
@@ -145,7 +140,6 @@ Now we can compute the accuracy values for all of the assessment data sets:
 
 
 ```{r map_dbl}
-
 rs_obj$accuracy <- map_dbl(rs_obj$results, function(x) mean(x$correct))
 summary(rs_obj$accuracy)
 
@@ -160,30 +154,29 @@ at first you should define the `recipe`, here the recipe is very simple since we
 still the formula is the same, eventhough a RFE apporoach would be preferable. 
 
 >With these specific issues in mind for these data, a recursive feature elimination
-(RFE) routine (Chapters 10 and 11) was used to determine if fewer predictors
-would be advantageous. RFE is a simple backwards selection procedure where
-the largest model is used initially and, from this model, each predictor is ranked
-in importance. For logistic regression, there are several methods for determining
-importance, and we will use the simple absolute value of the regression coefficient
-for each model term (after the predictors have been centered and scaled). The RFE
-procedure begins to remove the least important predictors, refits the model, and
-evaluates performance. At each model fit, the predictors are preprocessed by an
-initial Yeo-Johnson transformation as well as centering and scaling.
-As will be discussed in later chapters, correlation between the predictors can cause
-instability in the logistic regression coefficients. While there are more sophisticated
-approaches, an additional variable filter will be used on the data to remove the
-minimum set of predictors such that no pairwise correlations between predictors are
-greater than 0.75. The data preprocessing will be conducted with and without this
-step to show the potential effects on the feature selection procedure.
+>(RFE) routine (Chapters 10 and 11) was used to determine if fewer predictors
+>would be advantageous. RFE is a simple backwards selection procedure where
+>the largest model is used initially and, from this model, each predictor is ranked
+>in importance. For logistic regression, there are several methods for determining
+>importance, and we will use the simple absolute value of the regression coefficient
+>for each model term (after the predictors have been centered and scaled). The RFE
+>procedure begins to remove the least important predictors, refits the model, and
+>evaluates performance. At each model fit, the predictors are preprocessed by an
+>initial Yeo-Johnson transformation as well as centering and scaling.
+>As will be discussed in later chapters, correlation between the predictors can cause
+>instability in the logistic regression coefficients. While there are more sophisticated
+>approaches, an additional variable filter will be used on the data to remove the
+>minimum set of predictors such that no pairwise correlations between predictors are
+>greater than 0.75. The data preprocessing will be conducted with and without this
+>step to show the potential effects on the feature selection procedure.
+>
+>-- <cite>ax Kuhn Kjell Johnson, Feature Engineering and Selection, 2019</cite>
 
-this was taken from the Max Kuhn Kjell Johnson, Feature Engineering and
-Selection
 
 Check the unbalancedness:
 
 
 ```{r unbalance}
-
 attrition %>%
   select(Attrition) %>% 
   skimr::skim()
@@ -198,7 +191,6 @@ attrition = tibble(attrition)
 Data is truly unbalanced, so you need to keep proportion in data.
 
 ```{r preprocess}
-
 ini = initial_split(attrition, prop = 8/10, strata = Attrition)
 train_attr = analysis(ini)
 test_attr = assessment(ini)
@@ -213,7 +205,6 @@ Here we have a integer variable MonthlyIncome and two factors, one binay (Gender
 
 
 ```{r ricettina}
-#
 rec = recipe(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = train_attr) %>%
   step_dummy(Gender, JobSatisfaction) %>% 
   step_scale(MonthlyIncome) %>% 
@@ -236,10 +227,8 @@ succo %>%
 
 
 ```{r fornoo}
-
 cuoci = bake(preps, new_data = test_attr)
 cuoci
-
 
 ```
 
@@ -249,7 +238,6 @@ cuoci
 
 
 ```{r parnsip}
-
 logistic = logistic_reg(mode = 'classification'); logistic
 logistic %>% 
   set_engine("glm") %>% 

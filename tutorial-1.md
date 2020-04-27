@@ -3,7 +3,7 @@ rsample tutorial n°1
 Niccolò Salvini
 25/4/2020
 
-# New Application
+# try with a dual application
 
 **attrition** data is used in this. It comes from the R base.
 
@@ -30,10 +30,10 @@ $Attrition. The idea is at first building a logistic regression, say, in
 the " **common framework** " so with the `glm()` and the family =
 ‘binomial’ and then try to build without a the same model with the
 `parnsip`. So for now let’s fit the Logistics some random predictors
-say: JobSatisfaction | Gender | MonthlyIncome
+say: JobSatisfaction | Gender |
+MonthlyIncome
 
 ``` r
-
 glm(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = attrition, family = binomial)
 #> 
 #> Call:  glm(formula = Attrition ~ JobSatisfaction + Gender + MonthlyIncome, 
@@ -60,7 +60,6 @@ accuracy of the model.
 First, let’s make the splits of the data:
 
 ``` r
-
 set.seed(123)
 rs_obj = vfold_cv(attrition, v = 10, repeats = 10)
 
@@ -80,11 +79,13 @@ set, **147** instances were in the **assessment** set, and that the
 original data contained **1470** data points.
 
 > quello che succede in italiano: dividi il dataset in 10 parti
-> randomiche, eserciti il modello su 9/10 e lo valuti sul restante 1/10.
-> Questo lo fai 10 volte all’interno della stessa partizione.
+> randomiche, eserciti il modello su \>9/10 e lo valuti sul restante
+> 1/10. Questo lo fai 10 volte all’interno della stessa partizione.
 > Successivamente ridivi il dataset in altre 10 parti diverse da quelle
-> allo step\_1 e riprovi il modello su 9/10 e lo valuti sul restante
+> allo step\_1 e riprovi il \>modello su 9/10 e lo valuti sul restante
 > 1/10. E così via.
+> 
+> – <cite> Me a Me stesso…</cite>
 
 this has to be applied to the logistic model and the steps are:
 
@@ -97,7 +98,6 @@ this has to be applied to the logistic model and the steps are:
 here the function:
 
 ``` r
-
 ## splits will be the `rsplit` object with the 90/10 partition
 holdout_results = function(splits, ...) {
   # Fit the model to the 90%
@@ -121,7 +121,6 @@ holdout_results = function(splits, ...) {
 take a single split and apply a the `holdout_results()`
 
 ``` r
-
 example = holdout_results(rs_obj$splits[[1]],  mod_form)
 dim(example)
 #> [1] 147  35
@@ -154,7 +153,6 @@ units. To compute this data set for each of the 100 resamples, we’ll use
 the map function from the `purrr` package:
 
 ``` r
-
 rs_obj$results = map(rs_obj$splits,
                       holdout_results,
                       mod_form)
@@ -180,7 +178,6 @@ Now we can compute the accuracy values for all of the assessment data
 sets:
 
 ``` r
-
 rs_obj$accuracy <- map_dbl(rs_obj$results, function(x) mean(x$correct))
 summary(rs_obj$accuracy)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -214,14 +211,13 @@ RFE apporoach would be preferable.
 > pairwise correlations between predictors are greater than 0.75. The
 > data preprocessing will be conducted with and without this step to
 > show the potential effects on the feature selection procedure.
-
-this was taken from the Max Kuhn Kjell Johnson, Feature Engineering and
-Selection
+> 
+> – <cite>ax Kuhn Kjell Johnson, Feature Engineering and Selection,
+> 2019</cite>
 
 Check the unbalancedness:
 
 ``` r
-
 attrition %>%
   select(Attrition) %>% 
   skimr::skim()
@@ -258,7 +254,6 @@ attrition = tibble(attrition)
 Data is truly unbalanced, so you need to keep proportion in data.
 
 ``` r
-
 ini = initial_split(attrition, prop = 8/10, strata = Attrition)
 train_attr = analysis(ini)
 test_attr = assessment(ini)
@@ -269,10 +264,10 @@ test_attr = assessment(ini)
 Here we have a integer variable MonthlyIncome and two factors, one binay
 (Gender) and the other 3 levels (JobSatistfaction). So I decided to
 center and scale all the numerics, (monthlyincome) and get dummies in
-the two factors vars.
+the two factors
+vars.
 
 ``` r
-#
 rec = recipe(Attrition ~ JobSatisfaction + Gender + MonthlyIncome, data = train_attr) %>%
   step_dummy(Gender, JobSatisfaction) %>% 
   step_scale(MonthlyIncome) %>% 
@@ -318,7 +313,6 @@ succo %>%
 ```
 
 ``` r
-
 cuoci = bake(preps, new_data = test_attr)
 cuoci
 #> # A tibble: 293 x 6
@@ -340,7 +334,6 @@ cuoci
 ## Now with the parnsip set up the model
 
 ``` r
-
 logistic = logistic_reg(mode = 'classification'); logistic
 #> Logistic Regression Model Specification (classification)
 logistic %>% 
